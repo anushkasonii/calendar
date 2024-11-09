@@ -5,11 +5,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import AddIcon from "@mui/icons-material/Add";
 import CreateEvent from './CreateEvent';
+import Stack from "@mui/material/Stack";
 
 const WeekCalendar = () => {
   const getMonday = (date) => {
@@ -29,7 +30,7 @@ const WeekCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [openCalendar, setOpenCalendar] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [events, setEvents] = useState([]); // State to hold events
+  const [events, setEvents] = useState([]);
   const [eventDetails, setEventDetails] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -42,8 +43,9 @@ const WeekCalendar = () => {
   };
 
   const addEvent = (newEvent) => {
-    setEvents((prevEvents) => [...prevEvents, newEvent]);
-    handleClose(); // Close dialog after adding event
+    const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
+    setEvents((prevEvents) => [...prevEvents, eventWithId]);
+    handleClose();
   };
 
   const navigateWeek = (direction) => {
@@ -59,7 +61,7 @@ const WeekCalendar = () => {
 
   const handleDeleteEvent = () => {
     setEvents(events.filter(event => event !== eventDetails));
-    setEventDetails(null); // Close the modal after deleting
+    setEventDetails(null);
   };
 
   const handleEditEvent = () => {
@@ -67,10 +69,14 @@ const WeekCalendar = () => {
   };
 
   const handleSaveChanges = () => {
-    setEvents(events.map(event => (event === eventDetails ? eventDetails : event)));
-    setEventDetails(null); // Close the modal after saving
-  };
-
+  setEvents((prevEvents) =>
+    prevEvents.map((event) =>
+      event.id === eventDetails.id ? { ...eventDetails } : event
+    )
+  );
+  setEventDetails(null);
+  setIsEditing(false);
+};
 
   const formatDay = (dayIndex) => {
     const date = new Date(selectedWeek);
@@ -78,7 +84,7 @@ const WeekCalendar = () => {
     return {
       day: date.toLocaleString('en-US', { weekday: 'short' }),
       date: date.getDate(),
-      events: events.filter(event => new Date(event.date).toDateString() === date.toDateString()), // Filter events for the current day
+      events: events.filter(event => new Date(event.date).toDateString() === date.toDateString()),
     };
   };
 
@@ -242,7 +248,8 @@ const WeekCalendar = () => {
                   {events.map((event, index) => (
                     <Box 
                     key={index}
-                    sx={{ 
+                    onClick={() => handleEventClick(event)} 
+                    sx={{
                       border: '1px solid #ece6f0',
                       boxShadow: '0px 4px 9px rgba(0, 0, 0, 0.1)',
                       margin: 2,
@@ -251,16 +258,13 @@ const WeekCalendar = () => {
                       paddingBottom: 1,
                       marginBottom:0,
                       width: '85%', 
-                      borderRadius: 1 
-                      }}>
-                       {/* title,
-                        date,
-                        Room,
-                        startTime,
-                        endTime,
-                        description, */}
-                        
-                     <Box
+                      borderRadius: 1 ,
+                      cursor: 'pointer',
+                      backgroundColor:'white'
+                      
+                    }}
+                    >
+                      <Box
                         sx={{
                           backgroundColor:'#EBEBEB',
                           
@@ -286,20 +290,21 @@ const WeekCalendar = () => {
                           {formatTimeRange(event.startTime, event.endTime)}
                         </Typography>
                      </Box>
+                     
                         <Typography 
                         sx={{
                           fontSize: "15px",
                           marginLeft:'5px',
                           color:'#8E8A94',
-                          marginTop:'5px'
+                          marginTop:'5px',
+                          
                         }}
                         >
                         {event.description} 
                         </Typography>
+                        
                     </Box>
                   ))}
-
-
                   <Button
                     color="#ded8e1 "
                     width="50"
@@ -323,50 +328,91 @@ const WeekCalendar = () => {
           );
         })}
       </Grid>
-      <CreateEvent open={dialogOpen} onClose={handleClose} addEvent={addEvent} />
-{/* Event Details Modal */}
 
-<Modal open={Boolean(eventDetails)} onClose={() => setEventDetails(null)}>
-  <Box sx={{ width: 400, margin: '100px auto', backgroundColor: '#fff', padding: 2, borderRadius: 1 }}>
-    {eventDetails && (
-      <>
-        <Typography variant="h6">Event Details</Typography>
-        <TextField
-          label="Title"
-          value={isEditing ? eventDetails.title : eventDetails.title}
-          onChange={(e) => setEventDetails({ ...eventDetails, title: e.target.value })}
-          fullWidth
-          margin="normal"
-          disabled={!isEditing}
-        />
-        <TextField
-          label="Description"
-          value={isEditing ? eventDetails.description : eventDetails.description}
-          onChange={(e) => setEventDetails({ ...eventDetails, description: e.target.value })}
-          fullWidth
-          margin="normal"
-          disabled={!isEditing}
-        />
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
-          {isEditing ? (
-            <Button variant="contained" color="primary" onClick={handleSaveChanges}>
-              Save
+      <Modal
+        open={!!eventDetails}
+        onClose={() => setEventDetails(null)}
+        aria-labelledby="event-modal-title"
+        aria-describedby="event-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 400,
+            bgcolor: 'background.paper',
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+            Event Details
+          </Typography>
+          <TextField
+            fullWidth
+            label="Title"
+            value={eventDetails?.title || ''}
+            disabled={!isEditing}
+            onChange={(e) =>
+              setEventDetails((prev) => ({ ...prev, title: e.target.value }))
+            }
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Start Time"
+            value={eventDetails?.startTime || ''}
+            disabled={!isEditing}
+            onChange={(e) =>
+              setEventDetails((prev) => ({ ...prev, startTime: e.target.value }))
+            }
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="End Time"
+            value={eventDetails?.endTime || ''}
+            disabled={!isEditing}
+            onChange={(e) =>
+              setEventDetails((prev) => ({ ...prev, endTime: e.target.value }))
+            }
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Description"
+            value={eventDetails?.description || ''}
+            disabled={!isEditing}
+            onChange={(e) =>
+              setEventDetails((prev) => ({ ...prev, description: e.target.value }))
+            }
+            sx={{ mb: 2 }}
+          />
+
+
+          <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end', mt: 2 }}>
+            <Button
+              variant="contained"
+              sx={{
+              color: "#fdf7ff",
+              fontWeight: "bold",
+              backgroundColor: "#53389E",
+            }}
+              onClick={isEditing ? handleSaveChanges : handleEditEvent}
+            >
+              {isEditing ? 'Save' : 'Edit'}
             </Button>
-          ) : (
-            <Button variant="outlined" onClick={handleEditEvent}>
-              Edit
+            <Button variant="outlined" color="error" onClick={handleDeleteEvent}>
+              Delete
             </Button>
-          )}
-          <Button variant="outlined" color="error" onClick={handleDeleteEvent}>
-            Delete
-          </Button>
+          </Stack>
         </Box>
-      </>
-    )}
-  </Box>
-</Modal>
+      </Modal>
 
-      
+      <CreateEvent open={dialogOpen} onClose={handleClose} addEvent={addEvent} />
     </Box>
   );
 };
