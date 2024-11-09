@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, Box, Typography, Button, Select, MenuItem, IconButton, Modal } from '@mui/material';
+import { Grid, Box, Typography, Button, Select, MenuItem, IconButton, Modal, TextField } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -29,6 +29,9 @@ const WeekCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [openCalendar, setOpenCalendar] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [events, setEvents] = useState([]); // State to hold events
+  const [eventDetails, setEventDetails] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleOpen = () => {
     setDialogOpen(true);
@@ -38,11 +41,36 @@ const WeekCalendar = () => {
     setDialogOpen(false);
   };
 
+  const addEvent = (newEvent) => {
+    setEvents((prevEvents) => [...prevEvents, newEvent]);
+    handleClose(); // Close dialog after adding event
+  };
+
   const navigateWeek = (direction) => {
     const newDate = new Date(selectedWeek);
     newDate.setDate(selectedWeek.getDate() + (direction === 'next' ? 7 : -7));
     setSelectedWeek(newDate);
   };
+
+  const handleEventClick = (event) => {
+    setEventDetails(event);
+    setIsEditing(false);
+  };
+
+  const handleDeleteEvent = () => {
+    setEvents(events.filter(event => event !== eventDetails));
+    setEventDetails(null); // Close the modal after deleting
+  };
+
+  const handleEditEvent = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveChanges = () => {
+    setEvents(events.map(event => (event === eventDetails ? eventDetails : event)));
+    setEventDetails(null); // Close the modal after saving
+  };
+
 
   const formatDay = (dayIndex) => {
     const date = new Date(selectedWeek);
@@ -50,6 +78,7 @@ const WeekCalendar = () => {
     return {
       day: date.toLocaleString('en-US', { weekday: 'short' }),
       date: date.getDate(),
+      events: events.filter(event => new Date(event.date).toDateString() === date.toDateString()), // Filter events for the current day
     };
   };
 
@@ -57,6 +86,14 @@ const WeekCalendar = () => {
     const date = new Date(selectedWeek);
     date.setDate(date.getDate() + dayIndex);
     return date.toDateString() === new Date().toDateString();
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    const formatTime = (date) => {
+      const options = { hour: 'numeric', hour12: true };
+      return new Date(date).toLocaleTimeString([], options).replace(':00', '').toLowerCase();
+    };
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
   };
 
   return (
@@ -67,18 +104,17 @@ const WeekCalendar = () => {
           variant="outlined"
           sx={{
             borderColor:'#1FB892',
-                color: '#1FB892',
-                fontSize:'17px',
-                backgroundColor:'white',
-                alignItems:'center',
-                borderRadius:'20px',
-                paddingX: 2.5,
-                
-                '&:hover': {
-                    borderColor: '#1FB892',
-                    backgroundColor: '#1FB892', 
-                    color:'white',
-                  },
+            color: '#1FB892',
+            fontSize:'17px',
+            backgroundColor:'white',
+            alignItems:'center',
+            borderRadius:'20px',
+            paddingX: 2.5,
+            '&:hover': {
+              borderColor: '#1FB892',
+              backgroundColor: '#1FB892', 
+              color:'white',
+            },
           }}
           onClick={handleOpen}
           startIcon={<AddIcon />}
@@ -160,7 +196,7 @@ const WeekCalendar = () => {
 
       <Grid container spacing={2} sx={{ marginTop: 3 }}>
         {[...Array(7)].map((_, dayIndex) => {
-          const { day, date } = formatDay(dayIndex);
+          const { day, date, events } = formatDay(dayIndex);
           const isCurrent = isCurrentDay(dayIndex);
           return (
             <Grid item xs={12} sm={1.7} key={dayIndex}>
@@ -203,8 +239,69 @@ const WeekCalendar = () => {
                     alignItems: 'center',
                   }}
                 >
+                  {events.map((event, index) => (
+                    <Box 
+                    key={index}
+                    sx={{ 
+                      border: '1px solid #ece6f0',
+                      boxShadow: '0px 4px 9px rgba(0, 0, 0, 0.1)',
+                      margin: 2,
+                      marginLeft: 2,
+                      marginRight: 2,
+                      paddingBottom: 1,
+                      marginBottom:0,
+                      width: '85%', 
+                      borderRadius: 1 
+                      }}>
+                       {/* title,
+                        date,
+                        Room,
+                        startTime,
+                        endTime,
+                        description, */}
+                        
+                     <Box
+                        sx={{
+                          backgroundColor:'#EBEBEB',
+                          
+                        }}>
+                        <Typography 
+                        sx={{
+                          fontSize: "17px",
+                          fontWeight: 'bold',
+                          marginLeft:'5px',
+                          color:'#615b71'
+                        }}
+                        >{event.title}
+                        </Typography>
+                        <Typography 
+                          sx={{
+                            fontSize: "16px",
+                            marginLeft: '5px',
+                            color: '#615b71',
+                            paddingBottom:'8px'
+                            
+                          }}
+                        >
+                          {formatTimeRange(event.startTime, event.endTime)}
+                        </Typography>
+                     </Box>
+                        <Typography 
+                        sx={{
+                          fontSize: "15px",
+                          marginLeft:'5px',
+                          color:'#8E8A94',
+                          marginTop:'5px'
+                        }}
+                        >
+                        {event.description} 
+                        </Typography>
+                    </Box>
+                  ))}
+
+
                   <Button
-                    color="#ded8e1"
+                    color="#ded8e1 "
                     width="50"
                     variant="outlined"
                     sx={{
@@ -226,7 +323,50 @@ const WeekCalendar = () => {
           );
         })}
       </Grid>
-      <CreateEvent open={dialogOpen} onClose={handleClose} />
+      <CreateEvent open={dialogOpen} onClose={handleClose} addEvent={addEvent} />
+{/* Event Details Modal */}
+
+<Modal open={Boolean(eventDetails)} onClose={() => setEventDetails(null)}>
+  <Box sx={{ width: 400, margin: '100px auto', backgroundColor: '#fff', padding: 2, borderRadius: 1 }}>
+    {eventDetails && (
+      <>
+        <Typography variant="h6">Event Details</Typography>
+        <TextField
+          label="Title"
+          value={isEditing ? eventDetails.title : eventDetails.title}
+          onChange={(e) => setEventDetails({ ...eventDetails, title: e.target.value })}
+          fullWidth
+          margin="normal"
+          disabled={!isEditing}
+        />
+        <TextField
+          label="Description"
+          value={isEditing ? eventDetails.description : eventDetails.description}
+          onChange={(e) => setEventDetails({ ...eventDetails, description: e.target.value })}
+          fullWidth
+          margin="normal"
+          disabled={!isEditing}
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+          {isEditing ? (
+            <Button variant="contained" color="primary" onClick={handleSaveChanges}>
+              Save
+            </Button>
+          ) : (
+            <Button variant="outlined" onClick={handleEditEvent}>
+              Edit
+            </Button>
+          )}
+          <Button variant="outlined" color="error" onClick={handleDeleteEvent}>
+            Delete
+          </Button>
+        </Box>
+      </>
+    )}
+  </Box>
+</Modal>
+
+      
     </Box>
   );
 };

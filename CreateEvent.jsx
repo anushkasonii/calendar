@@ -31,17 +31,6 @@ const MenuProps = {
   },
 };
 
-const Rooms = [
-  "DayCare",
-  "Demo Room",
-  "Kindergarten",
-  "Nursery",
-  "Primary",
-  "xxx",
-  "xxx",
-  "All rooms",
-];
-
 function getStyles(name, personName, theme) {
   return {
     fontWeight: personName.includes(name)
@@ -50,12 +39,25 @@ function getStyles(name, personName, theme) {
   };
 }
 
-export default function CreateEvent({ open, onClose }) {
+
+const Rooms = [
+  "DayCare",
+  "Demo Room",
+  "Kindergarten",
+  "Nursery",
+  "Primary",
+  "All rooms",
+];
+// HERE
+export default function CreateEvent({ open, onClose, addEvent }) {
   const theme = useTheme();
   const [Room, setRoom] = React.useState(["All rooms"]);
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [description, setDescription] = useState("");
 
-
- 
   const handleChange = (event) => {
     const {
       target: { value },
@@ -63,13 +65,32 @@ export default function CreateEvent({ open, onClose }) {
     setRoom(typeof value === "string" ? value.split(",") : value);
   };
 
+  const handleCreateEvent = () => {
+    const newEvent = {
+      title,
+      date,
+      Room,
+      startTime,
+      endTime,
+      description,
+    };
+    addEvent(newEvent);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setRoom(["All rooms"]);
+    setDate(null);
+    setStartTime(null);
+    setEndTime(null);
+    setDescription("");
+  };
+
   return (
     <div>
-      
-
-      {/* CREATE NEW EVENT */}
-      <Dialog open={open} onClose={onClose}>
-        <DialogTitle
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle
           sx={{
             fontSize: "24px",
             font: "Poppins",
@@ -80,126 +101,136 @@ export default function CreateEvent({ open, onClose }) {
           Create New Event
         </DialogTitle>
 
-        <DialogContent>
-          {/* NEWEVENT.JSX */}
-          <Box
+      <DialogContent>
+        <Box
             component="form"
             sx={{ "& .MuiTextField-root": { m: 1, width: "100%" } }}
             noValidate
             autoComplete="off"
           >
-            <Stack spacing={0.5}>
-              {/* TITLE */}
-              <div>
-                <TextField
-                  id="outlined-search"
-                  label="Title"
-                  type="text"
-                  style={{ width: 400 }}
-                />
-              </div>
+          <Stack spacing={0.5}>
+            <TextField
+              id="outlined-search"
+              label="Title"
+              value={title}
+              style={{ width: 400 }}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            
+            <div>
+            <FormControl sx={{ m: 1, width: 400 }}>
+              <InputLabel id="demo-multiple-name-label">Rooms</InputLabel>
+              <Select
+                labelId="demo-multiple-name-label"
+                id="demo-multiple-name"
+                multiple
+                value={Room}
+                onChange={handleChange}
+                input={<OutlinedInput label="Rooms" />}
+                MenuProps={MenuProps}
+              >
+                {Rooms.map((room) => (
+                  <MenuItem 
+                    key={room} 
+                    value={room}
+                    style={getStyles(room, Room, theme)}
+                    >
+                    {room}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            </div>
 
-              {/* ROOM */}
-              <div>
-                <FormControl sx={{ m: 1, width: 400 }}>
-                  <InputLabel id="demo-multiple-name-label">Rooms</InputLabel>
-                  <Select
-                    labelId="demo-multiple-name-label"
-                    id="demo-multiple-name"
-                    multiple
-                    value={Room}
-                    onChange={handleChange}
-                    input={<OutlinedInput label="Rooms" />}
-                    MenuProps={MenuProps}
-                  >
-                    {Rooms.map((room) => (
-                      <MenuItem
-                        key={room}
-                        value={room}
-                        style={getStyles(room, Room, theme)}
-                      >
-                        {room}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </div>
 
-              {/* DATE */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DemoContainer components={["DatePicker"]}>
-                  <div style={{ width: 400, marginTop: -10 }}>
-                    <DatePicker label="Date" fullWidth />
-                  </div>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["DatePicker"]}>
+            <div style={{ width: 400, marginTop: -10 }}>
+              <DatePicker
+                label="Date"
+                value={date}
+                onChange={(newValue) => setDate(newValue)}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+              </div>
                 </DemoContainer>
-              </LocalizationProvider>
+                </LocalizationProvider>
 
-              {/* START TIME & END TIME */}
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <DemoContainer components={["TimePicker"]}>
-                  <div style={{ width: 191.9, marginTop: -10 }}>
-                    <TimePicker label="Start Time" fullWidth />
-                  </div>
-                  <div style={{ width: 191.9, marginTop: -10 }}>
-                    <TimePicker label="End Time" fullWidth />
-                  </div>
-                </DemoContainer>
-              </LocalizationProvider>
-
-
-              {/* DESCRIPTION */}
-              <div>
-                <TextField
-                  id="outlined-search"
-                  label="Description (Optional)"
-                  type="text"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  style={{ width: 400 }}
-                />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DemoContainer components={["TimePicker"]}>
+            <div style={{ width: 191.9, marginTop: -10 }}>
+              <TimePicker
+                label="Start Time"
+                fullWidth
+                value={startTime}
+                onChange={(newValue) => setStartTime(newValue)}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
               </div>
-            </Stack>
-          </Box>
-        </DialogContent>
+              <div style={{ width: 191.9, marginTop: -10 }}>
+              <TimePicker
+                label="End Time"
+                fullWidth
+                value={endTime}
+                onChange={(newValue) => setEndTime(newValue)}
+                renderInput={(params) => <TextField {...params} fullWidth />}
+              />
+              </div>
+              </DemoContainer>
+            </LocalizationProvider>
 
-        {/* CREATE AND CANCEL */}
-        <Box
+            <div>
+            <TextField
+              id="outlined-search"
+              label="Description (Optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              multiline
+              rows={3}
+              style={{ width: 400 }}
+            />
+            </div>
+          </Stack>
+        </Box>
+      </DialogContent>
+
+
+      <Box
           sx={{
             backgroundColor: "#E9E8EA",
           }}
         >
-          <DialogActions>
-            <Button
-              onClick={onClose}
-              sx={{
-                color: "#48454e",
-                fontWeight: "bold",
-                backgroundColor: "transparent",
-                marginBottom: "15px",
-                marginTop: "10px",
-              }}
-            >
-              Cancel
-            </Button>
-
-            <Button
-              onClick={onClose}
-              variant="contained"
-              sx={{
-                color: "#fdf7ff",
-                fontWeight: "bold",
-                backgroundColor: "#53389E",
-                marginBottom: "15px",
-                marginRight: "24px",
-                marginTop: "10px",
-              }}
-            >
-              Create
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
+      <DialogActions>
+        <Button 
+        onClick={onClose}
+        sx={{
+          color: "#48454e",
+          fontWeight: "bold",
+          backgroundColor: "transparent",
+          marginBottom: "15px",
+          marginTop: "10px",
+        }}
+        >
+          Cancel
+          </Button>
+        <Button 
+        onClick={handleCreateEvent} 
+        variant="contained"
+        sx={{
+          color: "#fdf7ff",
+          fontWeight: "bold",
+          backgroundColor: "#53389E",
+          marginBottom: "15px",
+          marginRight: "24px",
+          marginTop: "10px",
+        }}
+        >
+          Create
+        </Button>
+      </DialogActions>
+      </Box>
+    </Dialog>
     </div>
   );
 }
