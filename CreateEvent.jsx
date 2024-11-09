@@ -19,6 +19,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 const ITEM_HEIGHT = 48;
@@ -97,15 +99,26 @@ export default function CreateEvent({
   return (
     <div>
       <Dialog open={open} onClose={onClose}>
-        <DialogTitle
+      <DialogTitle
           sx={{
             fontSize: "24px",
             font: "Poppins",
             fontWeight: "bold",
             marginLeft: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           Create New Event
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={onClose}
+            sx={{ position: "flex-end", right: 6, top: 0 }}
+          >
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
 
         <DialogContent>
