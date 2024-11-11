@@ -72,14 +72,16 @@ export default function CreateEvent({
   useEffect(() => {
     if (editEvent) {
       setTitle(editEvent.title);
-      setRooms(editEvent.rooms || []);// Set the selected rooms
+      setRooms(editEvent.rooms || []); // Set the selected rooms
       setDate(dayjs(editEvent.date)); // Ensure date is a dayjs object
       setStartTime(dayjs(editEvent.startTime)); // Ensure startTime is a dayjs object
       setEndTime(dayjs(editEvent.endTime)); // Ensure endTime is a dayjs object
       setDescription(editEvent.description);
+    } else {
+      // Reset form if not editing
+      resetForm();
     }
   }, [editEvent]);
-
   // const handleChange = (event) => {
   //   const {
   //     target: { value },
@@ -94,7 +96,7 @@ export default function CreateEvent({
     const newEvent = {
       title,
       date,
-      rooms,
+      rooms, // Make sure to include rooms
       startTime,
       endTime,
       description,

@@ -100,7 +100,6 @@ const WeekCalendar = () => {
     setEventDetails(null);
     setIsEditing(false);
   };
-
   const handleEditEvent = () => {
     setTitle(eventDetails.title);
     setDate(eventDetails.date);
@@ -110,6 +109,7 @@ const WeekCalendar = () => {
     setDescription(eventDetails.description);
     setEditDate(new Date(eventDetails.date));
     setIsEditing(true); // Enable editing mode
+    setDialogOpen(true); // Open the CreateEvent dialog
   };
 
   const formatDay = (dayIndex) => {
@@ -573,6 +573,7 @@ const WeekCalendar = () => {
         onSubmit={addEvent}
         editDate={editDate} // Pass editDate prop
         setEditDate={setEditDate} // Pass setEditDate prop
+        editEvent={isEditing ? eventDetails : null} 
       />
     </Box>
   );
