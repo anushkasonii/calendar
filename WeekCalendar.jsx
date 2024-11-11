@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Grid, Box,Typography,Button,Select,MenuItem,IconButton,Modal,TextField,} from "@mui/material";
+import { Grid, Box, Typography, Button, Select, MenuItem, IconButton, Modal, TextField } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -14,7 +14,6 @@ import Stack from "@mui/material/Stack";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
-
 
 const WeekCalendar = () => {
   const getMonday = (date) => {
@@ -31,14 +30,13 @@ const WeekCalendar = () => {
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
 
-  const [rooms, setRooms] = useState([]); // Change from single room to an array
+  const [selectedRooms, setSelectedRooms] = useState([]); // State for selected rooms
   const handleChange = (event) => {
     const {
       target: { value },
     } = event;
-    setRooms(typeof value === 'string' ? value.split(',') : value);
+    setSelectedRooms(typeof value === 'string' ? value.split(',') : value);
   };
-
 
   const [selectedWeek, setSelectedWeek] = useState(getMonday(new Date()));
   const [selectedDate, setSelectedDate] = useState(null);
@@ -47,7 +45,6 @@ const WeekCalendar = () => {
   const [events, setEvents] = useState([]);
   const [eventDetails, setEventDetails] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  // Add this line below other state hooks
   const [editDate, setEditDate] = useState(new Date());
 
   const handleOpen = () => {
@@ -55,27 +52,25 @@ const WeekCalendar = () => {
   };
 
   const handleClose = () => {
-    setDialogOpen(false);       
-    setEventDetails(null);      
-    setIsEditing(false);        
+    setDialogOpen(false);
+    setEventDetails(null);
+    setIsEditing(false);
   };
-  
 
   const addEvent = (newEvent) => {
     if (isEditing) {
-        // Update the existing event
-        setEvents((prevEvents) =>
-            prevEvents.map((event) =>
-                event.id === eventDetails.id ? { ...newEvent, id: event.id } : event
-            )
-        );
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventDetails.id ? { ...newEvent, id: event.id } : event
+        )
+      );
     } else {
-        // Add a new event
-        const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
-        setEvents((prevEvents) => [...prevEvents, eventWithId]);
+      const eventWithId = { ...newEvent, id: events.length + 1 };
+      setEvents((prevEvents) => [...prevEvents, eventWithId]);
     }
     handleClose();
-};
+  };
+
   const navigateWeek = (direction) => {
     const newDate = new Date(selectedWeek);
     newDate.setDate(selectedWeek.getDate() + (direction === "next" ? 7 : -7));
@@ -85,7 +80,7 @@ const WeekCalendar = () => {
   const handleEventClick = (event) => {
     setEventDetails({
       ...event,
-      date: new Date(event.date), // Ensure date is a Date object
+      date: new Date(event.date),
     });
     setIsEditing(false);
   };
@@ -93,14 +88,13 @@ const WeekCalendar = () => {
   const handleDeleteEvent = () => {
     const confirmed = window.confirm("Are you sure you want to delete this event?");
     if (confirmed) {
-      setEvents(events.filter((event) => event.id !== eventDetails.id)); // Use the event ID to delete the correct event
-      setEventDetails(null); // Close the modal after deletion
+      setEvents(events.filter((event) => event.id !== eventDetails.id));
+      setEventDetails(null);
     }
   };
-  
 
   const handleSaveChanges = () => {
-    setEvents((prevEvents) =>
+ setEvents((prevEvents) =>
       prevEvents.map((event) =>
         event.id === eventDetails.id ? { ...eventDetails } : event
       )
@@ -108,16 +102,17 @@ const WeekCalendar = () => {
     setEventDetails(null);
     setIsEditing(false);
   };
+
   const handleEditEvent = () => {
     setTitle(eventDetails.title);
     setDate(eventDetails.date);
-    setRooms(eventDetails.rooms || []); // Set the rooms for editing
+    setSelectedRooms(eventDetails.rooms || []); 
     setStartTime(eventDetails.startTime);
     setEndTime(eventDetails.endTime);
     setDescription(eventDetails.description);
     setEditDate(new Date(eventDetails.date));
-    setIsEditing(true); // Enable editing mode
-    setDialogOpen(true); // Open the CreateEvent dialog
+    setIsEditing(true);
+    setDialogOpen(true);
   };
 
   const formatDay = (dayIndex) => {
@@ -127,7 +122,8 @@ const WeekCalendar = () => {
       day: date.toLocaleString("en-US", { weekday: "short" }),
       date: date.getDate(),
       events: events.filter(
-        (event) => new Date(event.date).toDateString() === date.toDateString()
+        (event) => new Date(event.date).toDateString() === date.toDateString() &&
+          (selectedRooms.length === 0 || event.rooms.some(room => selectedRooms.includes(room)))
       ),
     };
   };
@@ -151,10 +147,7 @@ const WeekCalendar = () => {
 
   return (
     <Box sx={{ padding: 4 }}>
-      {/* New Event Button */}
-      <Box
-        sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}
-      >
+      <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
         <Button
           variant="outlined"
           sx={{
@@ -175,11 +168,9 @@ const WeekCalendar = () => {
           startIcon={<AddIcon />}
         >
           New Event
-          
         </Button>
       </Box>
 
-      {/* Month and Year Display */}
       <Typography variant="h3" sx={{ marginBottom: 2, marginTop: -8 }}>
         {selectedDate
           ? selectedDate.toLocaleString("en-US", {
@@ -192,19 +183,10 @@ const WeekCalendar = () => {
             })}
       </Typography>
 
-      {/* Controls Row */}
-      <Grid
-        container
-        spacing={2}
-        alignItems="center"
-        sx={{ display: "flex", gap: 2, mt: 2, ml: 0 }}
-      >
+      <Grid container spacing={2} alignItems="center" sx={{ display: "flex", gap: 2, mt: 2, ml: 0 }}>
         <Button sx={{ border: "2px solid #958DA8", padding: 0 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <IconButton
-              onClick={() => setOpenCalendar(true)}
-              sx={{ position: "relative" }}
-            >
+            <IconButton onClick={() => setOpenCalendar(true)} sx={{ position: "relative" }}>
               <CalendarTodayIcon sx={{ fontSize: "25px", color: "#807892" }} />
             </IconButton>
             <Modal open={openCalendar} onClose={() => setOpenCalendar(false)}>
@@ -248,35 +230,56 @@ const WeekCalendar = () => {
         </Button>
 
         <IconButton onClick={() => navigateWeek("prev")}>
-          <ChevronLeftIcon
-            sx={{ fontSize: "35px", color: "#807892", fontWeight: "bold" }}
-          />
+          <ChevronLeftIcon sx={{ fontSize: "35px ", color: "#807892", fontWeight: "bold" }} />
         </IconButton>
 
         <IconButton onClick={() => navigateWeek("next")}>
-          <ChevronRightIcon
-            sx={{ fontSize: "35px", color: "#807892", fontWeight: "bold" }}
-          />
+          <ChevronRightIcon sx={{ fontSize: "35px", color: "#807892", fontWeight: "bold" }} />
         </IconButton>
 
-        <Box>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              multiple
-              value={rooms} // Use the rooms state
-              sx={{ minWidth: 200, width: 300, height: 50 }}
-              label="Rooms"
-              onChange={handleChange}
-            >
-              <MenuItem value="DayCare">DayCare</MenuItem>
-              <MenuItem value="Demo Room">Demo Room</MenuItem>
-              <MenuItem value="Kindergarten">Kindergarten</MenuItem>
-              <MenuItem value="Nursery">Nursery</MenuItem>
-              <MenuItem value="Primary">Primary</MenuItem>
-              <MenuItem value="All rooms">All rooms</MenuItem>
-            </Select>
-        </Box>
+        <Box sx={{ minWidth: 200, width: 300 }}>
+      <FormControl fullWidth>
+        <InputLabel id="room-select-label">Select Rooms</InputLabel>
+        <Select
+          labelId="room-select-label"
+          id="room-select"
+          multiple
+          value={selectedRooms}
+          onChange={handleChange}
+          MenuProps={{
+            PaperProps: {
+              style: {
+                maxHeight: 200,
+                width: 250,
+                marginTop: 8, 
+                zIndex: 1300, 
+              },
+            },
+            disablePortal: true, 
+          }}
+          sx={{
+            bgcolor: "white",
+            borderColor: "#1FB892",
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#1FB892",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#1FB892",
+            },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#1FB892",
+            },
+          }}
+        >
+          <MenuItem value="DayCare">DayCare</MenuItem>
+          <MenuItem value="Demo Room">Demo Room</MenuItem>
+          <MenuItem value="Kindergarten">Kindergarten</MenuItem>
+          <MenuItem value="Nursery">Nursery</MenuItem>
+          <MenuItem value="Primary">Primary</MenuItem>
+          <MenuItem value="All rooms">All rooms</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
       </Grid>
 
       <Grid container spacing={2} sx={{ marginTop: 3 }}>
@@ -358,7 +361,6 @@ const WeekCalendar = () => {
                           {event.title}
                         </Typography>
 
-                        
                         <Typography
                           sx={{
                             fontSize: "16px",
@@ -378,7 +380,7 @@ const WeekCalendar = () => {
                           marginTop: "5px",
                         }}
                       >
-                        {event.rooms ? event.rooms.join(", ") : "No Rooms"} {/* Check if rooms is defined */}
+                        {event.rooms ? event.rooms.join(", ") : "No Rooms"}
                       </Typography>
 
                       <Typography
@@ -406,7 +408,7 @@ const WeekCalendar = () => {
                     onClick={handleOpen}
                   >
                     <AddIcon
-                      sx={{
+                      sx ={{
                         color: "#958DA8",
                       }}
                     />
@@ -438,18 +440,18 @@ const WeekCalendar = () => {
           }}
         >
           <Stack spacing={2}>
-          <Typography variant="h6" component="h2" 
-          sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems:  'center' }}>
-            Event Details
-            <IconButton
-              edge="end"
-              color="inherit"
-              onClick={handleClose}
-              sx={{ position: "relative", right: 0, top: 0 }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Typography>
+            <Typography variant="h6" component="h2" 
+            sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems:  'center' }}>
+              Event Details
+              <IconButton
+                edge="end"
+                color="inherit"
+                onClick={handleClose}
+                sx={{ position: "relative", right: 0, top: 0 }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Typography>
 
             <TextField
               fullWidth
@@ -484,10 +486,10 @@ const WeekCalendar = () => {
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Date"
-                value={eventDetails?.date ? new dayjs(eventDetails.date) : new dayjs()} // Ensure it's a dayjs object
+                value={eventDetails?.date ? new dayjs(eventDetails.date) : new dayjs()}
                 onChange={(newValue) => {
                   if (newValue) {
-                    setEventDetails((prev) => ({ ...prev, date: newValue })); // Store the dayjs object
+                    setEventDetails((prev) => ({ ...prev, date: newValue }));
                   }
                 }}
                 renderInput={(params) => <TextField {...params} />}
@@ -579,9 +581,9 @@ const WeekCalendar = () => {
         open={dialogOpen}
         onClose={handleClose}
         onSubmit={addEvent}
-        editDate={editDate} // Pass editDate prop
-        setEditDate={setEditDate} // Pass setEditDate prop
-        editEvent={isEditing ? eventDetails : null} 
+        editDate={editDate}
+        setEditDate={setEditDate}
+        editEvent={isEditing ? eventDetails : null}
       />
     </Box>
   );

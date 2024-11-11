@@ -96,12 +96,12 @@ export default function CreateEvent({
     const newEvent = {
       title,
       date,
-      rooms, // Make sure to include rooms
+      rooms, 
       startTime,
       endTime,
       description,
     };
-    onSubmit(newEvent); // Call the function passed from the parent component
+    onSubmit(newEvent); 
     onClose();
     resetForm();
   };
@@ -173,7 +173,7 @@ export default function CreateEvent({
                     onChange={handleRoomChange}
                     input={<OutlinedInput label="Rooms" />}
                   >
-                    {['DayCare', 'Demo Room', 'Kindergarten','Nursery', 'Primary', 'All rooms'].map((room) => ( // Replace with your room data
+                    {['DayCare', 'Demo Room', 'Kindergarten','Nursery', 'Primary', 'All rooms'].map((room) => ( 
                       <MenuItem key={room} value={room}>
                         {room}
                       </MenuItem>
@@ -187,7 +187,7 @@ export default function CreateEvent({
                   <div style={{ width: 400, marginTop: -10 }}>
                     <DatePicker
                       label="Date"
-                      value={date || dayjs()} // Default to dayjs() if date is null
+                      value={date || dayjs()} 
                       onChange={(newValue) => {
                         if (newValue && newValue.isValid()) {
                           setDate(newValue);
@@ -206,7 +206,7 @@ export default function CreateEvent({
                     <TimePicker
                       label="Start Time"
                       fullWidth
-                      value={startTime || dayjs()} // Default to dayjs() if startTime is null
+                      value={startTime || dayjs()} is null
                       onChange={(newValue) => {
                         if (newValue && newValue.isValid()) {
                           setStartTime(newValue);
@@ -219,7 +219,7 @@ export default function CreateEvent({
                     <TimePicker
                       label="End Time"
                       fullWidth
-                      value={endTime || dayjs()} // Default to dayjs() if endTime is null
+                      value={endTime || dayjs()} 
                       onChange={(newValue) => {
                         if (newValue && newValue.isValid()) {
                           setEndTime(newValue);
