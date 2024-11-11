@@ -13,6 +13,7 @@ import CreateEvent from "./CreateEvent";
 import Stack from "@mui/material/Stack";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import dayjs from "dayjs";
+import CloseIcon from "@mui/icons-material/Close";
 
 
 const WeekCalendar = () => {
@@ -50,8 +51,11 @@ const WeekCalendar = () => {
   };
 
   const handleClose = () => {
-    setDialogOpen(false);
+    setDialogOpen(false);       
+    setEventDetails(null);      
+    setIsEditing(false);        
   };
+  
 
   const addEvent = (newEvent) => {
     console.log("Event added: ", newEvent);
@@ -75,9 +79,13 @@ const WeekCalendar = () => {
   };
 
   const handleDeleteEvent = () => {
-    setEvents(events.filter((event) => event !== eventDetails));
-    setEventDetails(null);
+    const confirmed = window.confirm("Are you sure you want to delete this event?");
+    if (confirmed) {
+      setEvents(events.filter((event) => event.id !== eventDetails.id)); // Use the event ID to delete the correct event
+      setEventDetails(null); // Close the modal after deletion
+    }
   };
+  
 
   const handleSaveChanges = () => {
     setEvents((prevEvents) =>
@@ -155,6 +163,7 @@ const WeekCalendar = () => {
           startIcon={<AddIcon />}
         >
           New Event
+          
         </Button>
       </Box>
 
@@ -390,7 +399,7 @@ const WeekCalendar = () => {
 
       <Modal
         open={!!eventDetails}
-        onClose={() => setEventDetails(null)}
+        onClose={handleClose}
         aria-labelledby="event-modal-title"
         aria-describedby="event-modal-description"
       >
@@ -408,9 +417,19 @@ const WeekCalendar = () => {
           }}
         >
           <Stack spacing={2}>
-            <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
-              Event Details
-            </Typography>
+          <Typography variant="h6" component="h2" 
+          sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems:  'center' }}>
+            Event Details
+            <IconButton
+              edge="end"
+              color="inherit"
+              onClick={handleClose}
+              sx={{ position: "relative", right: 0, top: 0 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Typography>
+
             <TextField
               fullWidth
               label="Title"
