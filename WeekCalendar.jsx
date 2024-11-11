@@ -62,12 +62,20 @@ const WeekCalendar = () => {
   
 
   const addEvent = (newEvent) => {
-    console.log("Event added: ", newEvent);
-    const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
-    setEvents((prevEvents) => [...prevEvents, eventWithId]);
+    if (isEditing) {
+        // Update the existing event
+        setEvents((prevEvents) =>
+            prevEvents.map((event) =>
+                event.id === eventDetails.id ? { ...newEvent, id: event.id } : event
+            )
+        );
+    } else {
+        // Add a new event
+        const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
+        setEvents((prevEvents) => [...prevEvents, eventWithId]);
+    }
     handleClose();
-  };
-
+};
   const navigateWeek = (direction) => {
     const newDate = new Date(selectedWeek);
     newDate.setDate(selectedWeek.getDate() + (direction === "next" ? 7 : -7));
