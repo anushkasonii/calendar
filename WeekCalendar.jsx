@@ -31,10 +31,14 @@ const WeekCalendar = () => {
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
 
-  const [room, setRoom] = React.useState("");
+  const [rooms, setRooms] = useState([]); // Change from single room to an array
   const handleChange = (event) => {
-    setRoom(event.target.value);
+    const {
+      target: { value },
+    } = event;
+    setRooms(typeof value === 'string' ? value.split(',') : value);
   };
+
 
   const [selectedWeek, setSelectedWeek] = useState(getMonday(new Date()));
   const [selectedDate, setSelectedDate] = useState(null);
@@ -59,7 +63,7 @@ const WeekCalendar = () => {
 
   const addEvent = (newEvent) => {
     console.log("Event added: ", newEvent);
-    const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
+    const eventWithId = { ...newEvent, id: events.length + 1, rooms };
     setEvents((prevEvents) => [...prevEvents, eventWithId]);
     handleClose();
   };
@@ -100,7 +104,7 @@ const WeekCalendar = () => {
   const handleEditEvent = () => {
     setTitle(eventDetails.title);
     setDate(eventDetails.date);
-    setRoom(eventDetails.room);
+    setRooms(eventDetails.rooms || []); // Set the rooms for editing
     setStartTime(eventDetails.startTime);
     setEndTime(eventDetails.endTime);
     setDescription(eventDetails.description);
@@ -248,24 +252,22 @@ const WeekCalendar = () => {
         </IconButton>
 
         <Box>
-          <FormControl fullWidth>
-            <InputLabel id="demo-simple-select-label">Room</InputLabel>
             <Select
               labelId="demo-simple-select-label"
               id="demo-simple-select"
-              value={room}
+              multiple
+              value={rooms} // Use the rooms state
               sx={{ minWidth: 200, width: 300, height: 50 }}
-              label="room"
+              label="Rooms"
               onChange={handleChange}
             >
-              <MenuItem value={10}>DayCare</MenuItem>
-              <MenuItem value={20}>Demo Room</MenuItem>
-              <MenuItem value={30}>Kindergarten</MenuItem>
-              <MenuItem value={40}>Nursery</MenuItem>
-              <MenuItem value={50}>Primary</MenuItem>
-              <MenuItem value={60}>All rooms</MenuItem>
+              <MenuItem value="DayCare">DayCare</MenuItem>
+              <MenuItem value="Demo Room">Demo Room</MenuItem>
+              <MenuItem value="Kindergarten">Kindergarten</MenuItem>
+              <MenuItem value="Nursery">Nursery</MenuItem>
+              <MenuItem value="Primary">Primary</MenuItem>
+              <MenuItem value="All rooms">All rooms</MenuItem>
             </Select>
-          </FormControl>
         </Box>
       </Grid>
 
@@ -348,6 +350,7 @@ const WeekCalendar = () => {
                           {event.title}
                         </Typography>
 
+                        
                         <Typography
                           sx={{
                             fontSize: "16px",
@@ -359,6 +362,16 @@ const WeekCalendar = () => {
                           {formatTimeRange(event.startTime, event.endTime)}
                         </Typography>
                       </Box>
+                      <Typography
+                        sx={{
+                          fontSize: "15px",
+                          marginLeft: "5px",
+                          color: "#6F6F78",
+                          marginTop: "5px",
+                        }}
+                      >
+                        {event.rooms.join(", ")} {/* Join the rooms array */}
+                      </Typography>
 
                       <Typography
                         sx={{
@@ -442,14 +455,15 @@ const WeekCalendar = () => {
             />
 
             <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel id="room-select-label">Room</InputLabel>
+              <InputLabel id="room-select-label">Rooms</InputLabel>
               <Select
                 labelId="room-select-label"
                 id="room-select"
-                value={eventDetails?.room || ""}
+                multiple
+                value={eventDetails?.rooms || []} // Use rooms array
                 disabled={!isEditing}
                 onChange={(e) =>
-                  setEventDetails((prev) => ({ ...prev, room: e.target.value }))
+                  setEventDetails((prev) => ({ ...prev, rooms: e.target.value }))
                 }
               >
                 <MenuItem value="DayCare">DayCare</MenuItem>

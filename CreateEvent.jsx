@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -57,27 +57,40 @@ export default function CreateEvent({
   onSubmit,
   editDate,
   setEditDate,
+  editEvent,
 }) {
   const theme = useTheme();
-  const [Room, setRoom] = React.useState(["All rooms"]);
+  const [rooms, setRooms] = useState([]);
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(editDate ? dayjs(editDate) : dayjs());
   const [startTime, setStartTime] = useState(dayjs());
   const [endTime, setEndTime] = useState(dayjs());
   const [description, setDescription] = useState("");
 
-  const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setRoom(typeof value === "string" ? value.split(",") : value);
-  };
+  // Effect to populate fields if editing an event
+  useEffect(() => {
+    if (editEvent) {
+      setTitle(editEvent.title);
+      setRooms(editEvent.rooms || []);// Set the selected rooms
+      setDate(dayjs(editEvent.date)); // Ensure date is a dayjs object
+      setStartTime(dayjs(editEvent.startTime)); // Ensure startTime is a dayjs object
+      setEndTime(dayjs(editEvent.endTime)); // Ensure endTime is a dayjs object
+      setDescription(editEvent.description);
+    }
+  }, [editEvent]);
+
+  // const handleChange = (event) => {
+  //   const {
+  //     target: { value },
+  //   } = event;
+  //   setRoom(typeof value === "string" ? value.split(",") : value);
+  // };
 
   const handleCreateEvent = () => {
     const newEvent = {
       title,
       date,
-      Room,
+      rooms,
       startTime,
       endTime,
       description,
@@ -87,9 +100,16 @@ export default function CreateEvent({
     resetForm();
   };
 
+  const handleRoomChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setRooms(typeof value === 'string' ? value.split(',') : value);
+  };
+
   const resetForm = () => {
     setTitle("");
-    setRoom(["All rooms"]);
+    setRooms([]);
     setDate(null);
     setStartTime(null);
     setEndTime(null);
@@ -138,23 +158,17 @@ export default function CreateEvent({
               />
 
               <div>
-                <FormControl sx={{ m: 1, width: 400 }}>
-                  <InputLabel id="demo-multiple-name-label">Rooms</InputLabel>
+                <FormControl fullWidth sx={{ m: 1, width: 400 }}>
+                  <InputLabel id="rooms-label">Rooms</InputLabel>
                   <Select
-                    labelId="demo-multiple-name-label"
-                    id="demo-multiple-name"
+                    labelId="rooms-label"
                     multiple
-                    value={Room}
-                    onChange={handleChange}
+                    value={rooms}
+                    onChange={handleRoomChange}
                     input={<OutlinedInput label="Rooms" />}
-                    MenuProps={MenuProps}
                   >
-                    {Rooms.map((room) => (
-                      <MenuItem
-                        key={room}
-                        value={room}
-                        style={getStyles(room, Room, theme)}
-                      >
+                    {['DayCare', 'Demo Room', 'Kindergarten','Nursery', 'Primary', 'All rooms'].map((room) => ( // Replace with your room data
+                      <MenuItem key={room} value={room}>
                         {room}
                       </MenuItem>
                     ))}
