@@ -63,7 +63,7 @@ const WeekCalendar = () => {
 
   const addEvent = (newEvent) => {
     console.log("Event added: ", newEvent);
-    const eventWithId = { ...newEvent, id: events.length + 1, rooms };
+    const eventWithId = { ...newEvent, id: events.length + 1 }; // Adds a unique id
     setEvents((prevEvents) => [...prevEvents, eventWithId]);
     handleClose();
   };
@@ -370,7 +370,7 @@ const WeekCalendar = () => {
                           marginTop: "5px",
                         }}
                       >
-                        {event.rooms.join(", ")} {/* Join the rooms array */}
+                        {event.rooms ? event.rooms.join(", ") : "No Rooms"} {/* Check if rooms is defined */}
                       </Typography>
 
                       <Typography
@@ -455,15 +455,14 @@ const WeekCalendar = () => {
             />
 
             <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel id="room-select-label">Rooms</InputLabel>
+              <InputLabel id="room-select-label">Room</InputLabel>
               <Select
                 labelId="room-select-label"
                 id="room-select"
-                multiple
-                value={eventDetails?.rooms || []} // Use rooms array
+                value={eventDetails?.room || ""}
                 disabled={!isEditing}
                 onChange={(e) =>
-                  setEventDetails((prev) => ({ ...prev, rooms: e.target.value }))
+                  setEventDetails((prev) => ({ ...prev, room: e.target.value }))
                 }
               >
                 <MenuItem value="DayCare">DayCare</MenuItem>
