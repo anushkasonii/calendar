@@ -1,10 +1,20 @@
 import React, { useState } from "react";
-import { Grid, Box, Typography, Button, Select, MenuItem, IconButton, Modal, TextField } from "@mui/material";
+import {
+  Grid,
+  Box,
+  Typography,
+  Button,
+  Select,
+  MenuItem,
+  IconButton,
+  Modal,
+  TextField,
+} from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
@@ -14,6 +24,7 @@ import Stack from "@mui/material/Stack";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
+import { v4 as uuidv4 } from 'uuid';
 
 const WeekCalendar = () => {
   const getMonday = (date) => {
@@ -35,7 +46,7 @@ const WeekCalendar = () => {
     const {
       target: { value },
     } = event;
-    setSelectedRooms(typeof value === 'string' ? value.split(',') : value);
+    setSelectedRooms(typeof value === "string" ? value.split(",") : value);
   };
 
   const [selectedWeek, setSelectedWeek] = useState(getMonday(new Date()));
@@ -46,6 +57,8 @@ const WeekCalendar = () => {
   const [eventDetails, setEventDetails] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editDate, setEditDate] = useState(new Date());
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
 
   const handleOpen = () => {
     setDialogOpen(true);
@@ -69,6 +82,7 @@ const WeekCalendar = () => {
       setEvents((prevEvents) => [...prevEvents, eventWithId]);
     }
     handleClose();
+    const eventWithId = { ...newEvent, id: uuidv4() };
   };
 
   const navigateWeek = (direction) => {
@@ -77,24 +91,45 @@ const WeekCalendar = () => {
     setSelectedWeek(newDate);
   };
 
+  // const handleEventClick = (event) => {
+  //   console.log("Event clicked:", event); // Check if the right event is clicked
+  //   setEventDetails({
+  //     ...event,
+  //     date: new Date(event.date),
+  //   });
+  //   setIsEditing(false);
+  // };
+
   const handleEventClick = (event) => {
-    setEventDetails({
-      ...event,
-      date: new Date(event.date),
-    });
-    setIsEditing(false);
-  };
+    console.log("Event clicked:", event);
+    setEventDetails(event); // Ensure this is correctly setting the selected event
+};
+
+
 
   const handleDeleteEvent = () => {
-    const confirmed = window.confirm("Are you sure you want to delete this event?");
-    if (confirmed) {
-      setEvents(events.filter((event) => event.id !== eventDetails.id));
-      setEventDetails(null);
-    }
+    console.log("Opening delete confirmation modal"); // Check if this is logged
+    setConfirmDeleteOpen(true); // Open the confirmation modal
   };
 
+const confirmDelete = () => {
+  console.log("Deleting event with ID:", eventDetails.id); // Log the ID of the event being deleted
+  setEvents((prevEvents) => {
+    const updatedEvents = prevEvents.filter((event) => event.id !== eventDetails.id);
+    console.log("Updated events:", updatedEvents); // Log the updated events array
+    return updatedEvents;
+  });
+  setEventDetails(null);
+  setConfirmDeleteOpen(false); // Close the confirmation modal
+};
+
+const cancelDelete = () => {
+    console.log("Delete cancelled");
+    setConfirmDeleteOpen(false); // Close the confirmation modal without deleting
+};
+
   const handleSaveChanges = () => {
- setEvents((prevEvents) =>
+    setEvents((prevEvents) =>
       prevEvents.map((event) =>
         event.id === eventDetails.id ? { ...eventDetails } : event
       )
@@ -106,7 +141,7 @@ const WeekCalendar = () => {
   const handleEditEvent = () => {
     setTitle(eventDetails.title);
     setDate(eventDetails.date);
-    setSelectedRooms(eventDetails.rooms || []); 
+    setSelectedRooms(eventDetails.rooms || []);
     setStartTime(eventDetails.startTime);
     setEndTime(eventDetails.endTime);
     setDescription(eventDetails.description);
@@ -122,8 +157,10 @@ const WeekCalendar = () => {
       day: date.toLocaleString("en-US", { weekday: "short" }),
       date: date.getDate(),
       events: events.filter(
-        (event) => new Date(event.date).toDateString() === date.toDateString() &&
-          (selectedRooms.length === 0 || event.rooms.some(room => selectedRooms.includes(room)))
+        (event) =>
+          new Date(event.date).toDateString() === date.toDateString() &&
+          (selectedRooms.length === 0 ||
+            event.rooms.some((room) => selectedRooms.includes(room)))
       ),
     };
   };
@@ -147,7 +184,9 @@ const WeekCalendar = () => {
 
   return (
     <Box sx={{ padding: 4 }}>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}>
+      <Box
+        sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}
+      >
         <Button
           variant="outlined"
           sx={{
@@ -183,10 +222,18 @@ const WeekCalendar = () => {
             })}
       </Typography>
 
-      <Grid container spacing={2} alignItems="center" sx={{ display: "flex", gap: 2, mt: 2, ml: 0 }}>
+      <Grid
+        container
+        spacing={2}
+        alignItems="center"
+        sx={{ display: "flex", gap: 2, mt: 2, ml: 0 }}
+      >
         <Button sx={{ border: "2px solid #958DA8", padding: 0 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <IconButton onClick={() => setOpenCalendar(true)} sx={{ position: "relative" }}>
+            <IconButton
+              onClick={() => setOpenCalendar(true)}
+              sx={{ position: "relative" }}
+            >
               <CalendarTodayIcon sx={{ fontSize: "25px", color: "#807892" }} />
             </IconButton>
             <Modal open={openCalendar} onClose={() => setOpenCalendar(false)}>
@@ -230,56 +277,60 @@ const WeekCalendar = () => {
         </Button>
 
         <IconButton onClick={() => navigateWeek("prev")}>
-          <ChevronLeftIcon sx={{ fontSize: "35px ", color: "#807892", fontWeight: "bold" }} />
+          <ChevronLeftIcon
+            sx={{ fontSize: "35px ", color: "#807892", fontWeight: "bold" }}
+          />
         </IconButton>
 
         <IconButton onClick={() => navigateWeek("next")}>
-          <ChevronRightIcon sx={{ fontSize: "35px", color: "#807892", fontWeight: "bold" }} />
+          <ChevronRightIcon
+            sx={{ fontSize: "35px", color: "#807892", fontWeight: "bold" }}
+          />
         </IconButton>
 
         <Box sx={{ minWidth: 200, width: 300 }}>
-      <FormControl fullWidth>
-        <InputLabel id="room-select-label">Select Rooms</InputLabel>
-        <Select
-          labelId="room-select-label"
-          id="room-select"
-          multiple
-          value={selectedRooms}
-          onChange={handleChange}
-          MenuProps={{
-            PaperProps: {
-              style: {
-                maxHeight: 200,
-                width: 250,
-                marginTop: 8, 
-                zIndex: 1300, 
-              },
-            },
-            disablePortal: true, 
-          }}
-          sx={{
-            bgcolor: "white",
-            borderColor: "#1FB892",
-            "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#1FB892",
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#1FB892",
-            },
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#1FB892",
-            },
-          }}
-        >
-          <MenuItem value="DayCare">DayCare</MenuItem>
-          <MenuItem value="Demo Room">Demo Room</MenuItem>
-          <MenuItem value="Kindergarten">Kindergarten</MenuItem>
-          <MenuItem value="Nursery">Nursery</MenuItem>
-          <MenuItem value="Primary">Primary</MenuItem>
-          <MenuItem value="All rooms">All rooms</MenuItem>
-        </Select>
-      </FormControl>
-    </Box>
+          <FormControl fullWidth>
+            <InputLabel id="room-select-label">Select Rooms</InputLabel>
+            <Select
+              labelId="room-select-label"
+              id="room-select"
+              multiple
+              value={selectedRooms}
+              onChange={handleChange}
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    maxHeight: 200,
+                    width: 250,
+                    marginTop: 8,
+                    zIndex: 1300,
+                  },
+                },
+                disablePortal: true,
+              }}
+              sx={{
+                bgcolor: "white",
+                borderColor: "#1FB892",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1FB892",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1FB892",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1FB892",
+                },
+              }}
+            >
+              <MenuItem value="DayCare">DayCare</MenuItem>
+              <MenuItem value="Demo Room">Demo Room</MenuItem>
+              <MenuItem value="Kindergarten">Kindergarten</MenuItem>
+              <MenuItem value="Nursery">Nursery</MenuItem>
+              <MenuItem value="Primary">Primary</MenuItem>
+              <MenuItem value="All rooms">All rooms</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
       </Grid>
 
       <Grid container spacing={2} sx={{ marginTop: 3 }}>
@@ -408,7 +459,7 @@ const WeekCalendar = () => {
                     onClick={handleOpen}
                   >
                     <AddIcon
-                      sx ={{
+                      sx={{
                         color: "#958DA8",
                       }}
                     />
@@ -440,9 +491,17 @@ const WeekCalendar = () => {
           }}
         >
           <Stack spacing={2}>
-            <Typography variant="h6" component="h2" 
-            sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems:  'center' }}>
-              Event Details
+            <Typography
+              variant="h6"
+              component="h2"
+              sx={{
+                mb: 2,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              Update Event Details
               <IconButton
                 edge="end"
                 color="inherit"
@@ -486,7 +545,11 @@ const WeekCalendar = () => {
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
                 label="Date"
-                value={eventDetails?.date ? new dayjs(eventDetails.date) : new dayjs()}
+                value={
+                  eventDetails?.date
+                    ? new dayjs(eventDetails.date)
+                    : new dayjs()
+                }
                 onChange={(newValue) => {
                   if (newValue) {
                     setEventDetails((prev) => ({ ...prev, date: newValue }));
@@ -537,42 +600,79 @@ const WeekCalendar = () => {
               sx={{ mb: 2 }}
             />
 
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{ justifyContent: "flex-end", mt: 2 }}
-            >
-              <Button
-                variant="contained"
-                sx={{
-                  borderRadius: "20px",
-                  marginBottom: "15px",
-                  marginRight: "24px",
-                  marginTop: "10px",
-                  borderColor: "#1FB892",
-                  color: "#fef7ff",
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  backgroundColor: "#1FB892",
-                  alignItems: "center",
-                  "&:hover": {
-                    borderColor: "#1FB892",
-                    backgroundColor: "white",
-                    color: "#1FB892",
-                  },
-                }}
-                onClick={isEditing ? handleSaveChanges : handleEditEvent}
-              >
-                {isEditing ? "Save" : "Edit"}
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={handleDeleteEvent}
-              >
-                Delete
-              </Button>
+              <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end", mt: 2 }}>
+                <Button
+                    variant="contained"
+                    sx={{
+                      borderRadius: "20px",
+                      marginBottom: "15px",
+                      marginRight: "24px",
+                      marginTop: "10px",
+                      borderColor: "#1FB892",
+                      color: "#fef7ff",
+                      fontSize: "15px",
+                      fontWeight: "bold",
+                      backgroundColor: "#1FB892",
+                      alignItems: "center",
+                      "&:hover": {
+                        borderColor: "#1FB892",
+                        backgroundColor: "white",
+                        color: "#1FB892",
+                      },
+                    }}
+                    onClick={isEditing ? handleSaveChanges : handleEditEvent}
+                >
+                    {isEditing ? "Save" : "Edit"}
+                </Button>
+                <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={handleDeleteEvent}
+                >
+                    Delete
+                </Button>
             </Stack>
+          </Stack>
+        </Box>
+       
+      </Modal>
+      
+      
+      
+      
+      <Modal
+        open={confirmDeleteOpen}
+        onClose={cancelDelete}
+        aria-labelledby="delete-confirmation-title"
+        aria-describedby="delete-confirmation-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "300px",
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography id="delete-confirmation-title" variant="h6">
+            Are you sure you want to delete this event?
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ justifyContent: "flex-end", mt: 2 }}
+          >
+            <Button variant="outlined" onClick={cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="contained" color="error" onClick={confirmDelete}>
+              Sure
+            </Button>
           </Stack>
         </Box>
       </Modal>
