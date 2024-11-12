@@ -68,28 +68,21 @@ export default function CreateEvent({
   const [endTime, setEndTime] = useState(dayjs());
   const [description, setDescription] = useState("");
 
-  // Effect to populate fields if editing an event
+
   useEffect(() => {
     if (editEvent) {
       setTitle(editEvent.title);
-      setRooms(editEvent.rooms || []); // Set the selected rooms
-      setDate(dayjs(editEvent.date)); // Ensure date is a dayjs object
-      setStartTime(dayjs(editEvent.startTime)); // Ensure startTime is a dayjs object
-      setEndTime(dayjs(editEvent.endTime)); // Ensure endTime is a dayjs object
+      setRooms(editEvent.rooms || []); 
+      setDate(dayjs(editEvent.date)); 
+      setStartTime(dayjs(editEvent.startTime)); 
+      setEndTime(dayjs(editEvent.endTime)); 
       setDescription(editEvent.description);
     } else {
-      // Reset form if not editing
+      
       resetForm();
     }
   }, [editEvent]);
-  // const handleChange = (event) => {
-  //   const {
-  //     target: { value },
-  //   } = event;
-  //   setRoom(typeof value === "string" ? value.split(",") : value);
-  // };
-
-
+ 
 
 
   const handleCreateEvent = () => {

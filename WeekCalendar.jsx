@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Grid,
   Box,
@@ -24,7 +24,7 @@ import Stack from "@mui/material/Stack";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import dayjs from "dayjs";
 import CloseIcon from "@mui/icons-material/Close";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const WeekCalendar = () => {
   const getMonday = (date) => {
@@ -40,8 +40,8 @@ const WeekCalendar = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
-
-  const [selectedRooms, setSelectedRooms] = useState([]); // State for selected rooms
+  const calendarIconRef = useRef(null);
+  const [selectedRooms, setSelectedRooms] = useState([]); 
   const handleChange = (event) => {
     const {
       target: { value },
@@ -58,7 +58,6 @@ const WeekCalendar = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editDate, setEditDate] = useState(new Date());
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
-
 
   const handleOpen = () => {
     setDialogOpen(true);
@@ -91,42 +90,34 @@ const WeekCalendar = () => {
     setSelectedWeek(newDate);
   };
 
-  // const handleEventClick = (event) => {
-  //   console.log("Event clicked:", event); // Check if the right event is clicked
-  //   setEventDetails({
-  //     ...event,
-  //     date: new Date(event.date),
-  //   });
-  //   setIsEditing(false);
-  // };
-
+ 
   const handleEventClick = (event) => {
     console.log("Event clicked:", event);
-    setEventDetails(event); // Ensure this is correctly setting the selected event
-};
-
-
-
-  const handleDeleteEvent = () => {
-    console.log("Opening delete confirmation modal"); // Check if this is logged
-    setConfirmDeleteOpen(true); // Open the confirmation modal
+    setEventDetails(event); 
   };
 
-const confirmDelete = () => {
-  console.log("Deleting event with ID:", eventDetails.id); // Log the ID of the event being deleted
-  setEvents((prevEvents) => {
-    const updatedEvents = prevEvents.filter((event) => event.id !== eventDetails.id);
-    console.log("Updated events:", updatedEvents); // Log the updated events array
-    return updatedEvents;
-  });
-  setEventDetails(null);
-  setConfirmDeleteOpen(false); // Close the confirmation modal
-};
+  const handleDeleteEvent = () => {
+    console.log("Opening delete confirmation modal"); 
+    setConfirmDeleteOpen(true); 
+  };
 
-const cancelDelete = () => {
+  const confirmDelete = () => {
+    console.log("Deleting event with ID:", eventDetails.id); 
+    setEvents((prevEvents) => {
+      const updatedEvents = prevEvents.filter(
+        (event) => event.id !== eventDetails.id
+      );
+      console.log("Updated events:", updatedEvents); 
+      return updatedEvents;
+    });
+    setEventDetails(null);
+    setConfirmDeleteOpen(false); 
+  };
+
+  const cancelDelete = () => {
     console.log("Delete cancelled");
-    setConfirmDeleteOpen(false); // Close the confirmation modal without deleting
-};
+    setConfirmDeleteOpen(false); 
+  };
 
   const handleSaveChanges = () => {
     setEvents((prevEvents) =>
@@ -182,6 +173,20 @@ const cancelDelete = () => {
     return `${formatTime(startTime)} - ${formatTime(endTime)}`;
   };
 
+  const handleOpenCalendar = () => {
+    if (calendarIconRef.current) {
+      const { top, left, height } =
+        calendarIconRef.current.getBoundingClientRect();
+      setCalendarPosition({
+        top: top + height + window.scrollY, 
+        left: left,
+      });
+    }
+    setOpenCalendar(true);
+  };
+
+  const [calendarPosition, setCalendarPosition] = useState({ top: 0, left: 0 });
+
   return (
     <Box sx={{ padding: 4 }}>
       <Box
@@ -231,16 +236,27 @@ const cancelDelete = () => {
         <Button sx={{ border: "2px solid #958DA8", padding: 0 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <IconButton
-              onClick={() => setOpenCalendar(true)}
+              ref={calendarIconRef}
+              onClick={handleOpenCalendar}
               sx={{ position: "relative" }}
             >
               <CalendarTodayIcon sx={{ fontSize: "25px", color: "#807892" }} />
             </IconButton>
-            <Modal open={openCalendar} onClose={() => setOpenCalendar(false)}>
+            <Modal
+              open={openCalendar}
+              onClose={() => setOpenCalendar(false)}
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "flex-start",
+              }}
+            >
               <Box
                 sx={{
                   width: 320,
-                  margin: "100px auto",
+                  position: "absolute",
+                  top: calendarPosition.top,
+                  left: calendarPosition.left,
                   backgroundColor: "#f8f1fb",
                   padding: 2,
                   borderRadius: 1,
@@ -600,46 +616,46 @@ const cancelDelete = () => {
               sx={{ mb: 2 }}
             />
 
-              <Stack direction="row" spacing={2} sx={{ justifyContent: "flex-end", mt: 2 }}>
-                <Button
-                    variant="contained"
-                    sx={{
-                      borderRadius: "20px",
-                      marginBottom: "15px",
-                      marginRight: "24px",
-                      marginTop: "10px",
-                      borderColor: "#1FB892",
-                      color: "#fef7ff",
-                      fontSize: "15px",
-                      fontWeight: "bold",
-                      backgroundColor: "#1FB892",
-                      alignItems: "center",
-                      "&:hover": {
-                        borderColor: "#1FB892",
-                        backgroundColor: "white",
-                        color: "#1FB892",
-                      },
-                    }}
-                    onClick={isEditing ? handleSaveChanges : handleEditEvent}
-                >
-                    {isEditing ? "Save" : "Edit"}
-                </Button>
-                <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={handleDeleteEvent}
-                >
-                    Delete
-                </Button>
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ justifyContent: "flex-end", mt: 2 }}
+            >
+              <Button
+                variant="contained"
+                sx={{
+                  borderRadius: "20px",
+                  marginBottom: "15px",
+                  marginRight: "24px",
+                  marginTop: "10px",
+                  borderColor: "#1FB892",
+                  color: "#fef7ff",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  backgroundColor: "#1FB892",
+                  alignItems: "center",
+                  "&:hover": {
+                    borderColor: "#1FB892",
+                    backgroundColor: "white",
+                    color: "#1FB892",
+                  },
+                }}
+                onClick={isEditing ? handleSaveChanges : handleEditEvent}
+              >
+                {isEditing ? "Save" : "Edit"}
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleDeleteEvent}
+              >
+                Delete
+              </Button>
             </Stack>
           </Stack>
         </Box>
-       
       </Modal>
-      
-      
-      
-      
+
       <Modal
         open={confirmDeleteOpen}
         onClose={cancelDelete}
